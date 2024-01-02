@@ -61,13 +61,13 @@ const tetrominos = {
 
 // цвет каждой фигуры
 const colors = {
-  'I': 'cyan',
-  'O': 'yellow',
-  'T': 'purple',
-  'S': 'green',
-  'Z': 'red',
-  'J': 'blue',
-  'L': 'orange'
+  'I': '#EA141C',
+  'O': '#FF910C',
+  'T': '#FEFB34',
+  'S': '#53DA3F',
+  'Z': '#01EDFA',
+  'J': '#DD0AB2',
+  'L': '#0077D3'
 };
 
 // счётчик
@@ -213,11 +213,11 @@ function placeTetromino() {
     context.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
     // пишем надпись белым моноширинным шрифтом по центру
     context.globalAlpha = 1;
-    context.fillStyle = 'white';
+    context.fillStyle = '#EA141C';
     context.font = '36px monospace';
     context.textAlign = 'center';
     context.textBaseline = 'middle';
-    context.fillText('GAME OVER!', canvas.width / 2, canvas.height / 2);
+    context.fillText('ПОМЕР', canvas.width / 2, canvas.height / 2);
   }
 
 
