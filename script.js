@@ -80,6 +80,31 @@ let rAF = null;
 let gameOver = false;
 
 
+
+// Дотуп к полю игровой статистики
+const canvasScore = document.getElementById('score');
+const contextScore = canvasScore.getContext('2d');
+
+// текущий счёт
+let score = 0;
+// рекорд
+let record = 0;
+// текущий уровень сложности
+let level = 0;
+// имя рекордсмена
+let recordName = 0;
+
+name = prompt("Ваше имя", ""); // не больше 8 символов!!
+
+// достаём имя и очки рекордсмена
+var Storage_size = localStorage.length;
+if (Storage_size > 0) {
+  record = localStorage.record;
+  recordName = localStorage.recordName;
+}
+
+
+
 // Функция возвращает случайное число в заданном диапазоне
 // https://stackoverflow.com/a/1527820/2124254
 function getRandomInt(min, max) {
@@ -90,7 +115,7 @@ function getRandomInt(min, max) {
 }
 
 // создаём последовательность фигур, которая появится в игре
-//https://tetris.fandom.com/wiki/Random_Generator
+// https://tetris.fandom.com/wiki/Random_Generator
 function generateSequence() {
   // тут — сами фигуры
   const sequence = ['I', 'J', 'L', 'O', 'S', 'T', 'Z'];
@@ -125,7 +150,7 @@ function getNextTetromino() {
   return {
     name: name,      // название фигуры (L, O, и т.д.)
     matrix: matrix,  // матрица с фигурой
-    row: row,        // текущая строка (фигуры стартую за видимой областью холста)
+    row: row,        // текущая строка (фигуры стартуют за видимой областью холста)
     col: col         // текущий столбец
   };
 }
@@ -185,6 +210,17 @@ function placeTetromino() {
     // если ряд заполнен
     if (playfield[row].every(cell => !!cell)) {
 
+      // добавление очков и проверка на рекорд
+      score += 10;
+      // проверка уровня при изменении очков
+      level = Math.floor(score/100) + 1;
+      if (score > record) {
+        record = score;
+        localStorage.record = record;
+        recordName = name;
+        localStorage.recordName = recordName;
+      }
+
       // очищаем его и опускаем всё вниз на одну клетку
       for (let r = row; r >= 0; r--) {
         for (let c = 0; c < playfield[r].length; c++) {
@@ -201,24 +237,36 @@ function placeTetromino() {
   tetromino = getNextTetromino();
 }
 
-  // показываем надпись Game Over
-  function showGameOver() {
-    // прекращаем всю анимацию игры
-    cancelAnimationFrame(rAF);
-    // ставим флаг окончания
-    gameOver = true;
-    // рисуем чёрный прямоугольник посередине поля
-    context.fillStyle = 'black';
-    context.globalAlpha = 0.75;
-    context.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
-    // пишем надпись белым моноширинным шрифтом по центру
-    context.globalAlpha = 1;
-    context.fillStyle = '#EA141C';
-    context.font = '36px monospace';
-    context.textAlign = 'center';
-    context.textBaseline = 'middle';
-    context.fillText('ПОМЕР', canvas.width / 2, canvas.height / 2);
-  }
+// показываем надпись Game Over
+function showGameOver() {
+  // прекращаем всю анимацию игры
+  cancelAnimationFrame(rAF);
+  // ставим флаг окончания
+  gameOver = true;
+  // рисуем чёрный прямоугольник посередине поля
+  context.fillStyle = 'black';
+  context.globalAlpha = 0.75;
+  context.fillRect(0, canvas.height / 2 - 30, canvas.width, 60);
+  // пишем надпись белым моноширинным шрифтом по центру
+  context.globalAlpha = 1;
+  context.fillStyle = '#EA141C';
+  context.font = '36px monospace';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.fillText('ПОМЕР', canvas.width / 2, canvas.height / 2);
+}
+
+// показ всей иговой статистики
+function showScore() {
+  contextScore.clearRect(0, 0, canvasScore.width, canvasScore.height);
+  contextScore.globalAlpha = 1;
+  contextScore.fillStyle = 'white';
+  contextScore.font = '18px monospace';
+  contextScore.fillText('Уровень: ' + level, 15, 20);
+  contextScore.fillText('Очки: ' + score, 15, 50);
+  contextScore.fillText('Рекордсмен: ' + recordName, 160, 20);
+  contextScore.fillText('Рекорд: ' + record, 160, 50);
+}
 
 
 
@@ -228,6 +276,9 @@ function loop() {
   rAF = requestAnimationFrame(loop);
   // очищаем холст
   context.clearRect(0,0,canvas.width,canvas.height);
+
+  // вывод статистики
+  showScore();
 
   // рисуем игровое поле с учётом заполненных фигур
   for (let row = 0; row < 20; row++) {
@@ -245,8 +296,8 @@ function loop() {
   // рисуем текущую фигуру
   if (tetromino) {
 
-    // фигура сдвигается вниз каждые 35 кадров
-    if (++count > 35) {
+    // фигура сдвигается вниз каждые 35 кадров на 1 уровне, далее - быстрее
+    if (++count > (36 - level)) {
       tetromino.row++;
       count = 0;
 
@@ -316,6 +367,8 @@ document.addEventListener('keydown', function(e) {
     tetromino.row = row;
   }
 });
+
+
 
 // старт игры
 rAF = requestAnimationFrame(loop);
